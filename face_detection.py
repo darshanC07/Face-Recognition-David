@@ -12,5 +12,5 @@ faces = haar_cascade.detectMultiScale(img, scaleFactor=1.05, minNeighbors=5, min
 i = 0
 for x, y, w, h in faces:
     cropped_img = img[ y:y+h, x:x+w]
-    cv2.imwrite(f"/stored_face/{i}.jpg",cropped_img)
+    cv2.imwrite(f"stored_face/{i}.jpg",cropped_img)
     i+=1
