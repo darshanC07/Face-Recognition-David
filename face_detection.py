@@ -6,40 +6,38 @@ import os
 sfr = SimpleFacerec()
 sfr.load_encoding_images("./stored_faces/")
 
-cap = cv2.VideoCapture(0)
-
-while True:
-    ret, frame = cap.read()
-    
-    face_location, face_name = sfr.detect_known_faces(frame)
-    for face_loc, name in zip(face_location, face_name):
-        # print(face_loc)
-        y1, x2, y2, x1 = face_loc[0],face_loc[1],face_loc[2],face_loc[3]
-        cv2.putText(frame, name, (x1, y1-10), cv2.FONT_HERSHEY_PLAIN,1,(0))
-        cv2.rectangle(frame,(x1,y1),(x2,y2),(0),4)
-        
-    cv2.imshow("frame",frame)
-    
+#for single image
+img = cv2.imread("trial_img.jpg",0)
+face_location, face_name = sfr.detect_known_faces(img)
+for face_loc, name in zip(face_location, face_name):
+    y1, x2, y2, x1 = face_loc[0],face_loc[1],face_loc[2],face_loc[3]
+    cv2.putText(img, name, (x1, y1-10), cv2.FONT_HERSHEY_PLAIN,1,(0))
+    cv2.rectangle(img,(x1,y1),(x2,y2),(0),4)
+    cv2.imshow("frame",img)    
     if cv2.waitKey(1)==ord("q"):
-        break
+            break
 
 cv2.destroyAllWindows()
 
+#for video 
+# cap = cv2.VideoCapture(0)
 
+# while True:
+#     ret, frame = cap.read()
+    
+#     face_location, face_name = sfr.detect_known_faces(frame)
+#     for face_loc, name in zip(face_location, face_name):
+#         # print(face_loc)
+#         y1, x2, y2, x1 = face_loc[0],face_loc[1],face_loc[2],face_loc[3]
+#         cv2.putText(frame, name, (x1, y1-10), cv2.FONT_HERSHEY_PLAIN,1,(0))
+#         cv2.rectangle(frame,(x1,y1),(x2,y2),(0),4)
+        
+#     cv2.imshow("frame",frame)
+    
+#     if cv2.waitKey(1)==ord("q"):
+#         break
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+# cv2.destroyAllWindows()
 
 
 
@@ -60,4 +58,20 @@ cv2.destroyAllWindows()
 #     result = face_recognition.compare_faces([img_encoding], img2_encoding)
 #     print(result)
     
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     
