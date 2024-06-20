@@ -1,76 +1,29 @@
-import face_recognition
 import cv2
-from simple_facerec import SimpleFacerec
-import os
 
-sfr = SimpleFacerec()
-sfr.load_encoding_images("./stored_faces/")
+alg = "./imp_files/haarcascade_frontalface_default.xml"
 
-#for single image
-img = cv2.imread("/trial_img.jpg",0)
-face_location, face_name = sfr.detect_known_faces(img)
-for face_loc, name in zip(face_location, face_name):
-    y1, x2, y2, x1 = face_loc[0],face_loc[1],face_loc[2],face_loc[3]
-    cv2.putText(img, name, (x1, y1-10), cv2.FONT_HERSHEY_PLAIN,1,(0))
-    cv2.rectangle(img,(x1,y1),(x2,y2),(0),4)
+haar_cascade = cv2.CascadeClassifier(alg)
+
+img = cv2.imread("images/group.jpg", 0)
+# gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+cap = cv2.VideoCapture(0)
+
+while True:
+    ret, frame = cap.read()
+    gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    faces = haar_cascade.detectMultiScale(gray_frame, scaleFactor=1.3, minNeighbors=5)
+
+    # print(len(faces))
     
-cv2.imshow("frame",img)    
-cv2.waitKey(0)
+    for x, y, w, h in faces:
+        top_left = (x,y)
+        bottom_right = (x+w, y+h)
+        cv2.rectangle(frame, (top_left), (bottom_right), (255,255,255), 4)
+
+    cv2.imshow("frame", frame) 
+    
+    if cv2.waitKey(1)==ord("q"):
+        break
+    
 cv2.destroyAllWindows()
-
-#for video 
-# cap = cv2.VideoCapture(0)
-
-# while True:
-#     ret, frame = cap.read()
-    
-#     face_location, face_name = sfr.detect_known_faces(frame)
-#     for face_loc, name in zip(face_location, face_name):
-#         # print(face_loc)
-#         y1, x2, y2, x1 = face_loc[0],face_loc[1],face_loc[2],face_loc[3]
-#         cv2.putText(frame, name, (x1, y1-10), cv2.FONT_HERSHEY_PLAIN,1,(0))
-#         cv2.rectangle(frame,(x1,y1),(x2,y2),(0),4)
-        
-#     cv2.imshow("frame",frame)
-    
-#     if cv2.waitKey(1)==ord("q"):
-#         break
-
-# cv2.destroyAllWindows()
-
-
-
-
-
-
-# img = cv2.imread('./images/trial_messi.jpg')
-# rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-# img_encoding = face_recognition.face_encodings(rgb_img)[0]
-
-# files = os.listdir("./known_faces")
-
-# for images in files:
-#     image = cv2.imread(f'./known_faces/{images}')
-#     rgb_img2 = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-#     img2_encoding = face_recognition.face_encodings(rgb_img2)[0]
-
-#     result = face_recognition.compare_faces([img_encoding], img2_encoding)
-#     print(result)
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
