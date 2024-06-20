@@ -12,7 +12,7 @@ cap = cv2.VideoCapture(0)
 while True:
     ret, frame = cap.read()
     gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    faces = haar_cascade.detectMultiScale(gray_frame, scaleFactor=1.3, minNeighbors=5)
+    faces = haar_cascade.detectMultiScale(gray_frame, scaleFactor=1.05, minNeighbors=3, minSize=(20,20), maxSize=(200,200))
 
     # print(len(faces))
     
