@@ -1,59 +1,63 @@
-import tkinter as tk
-from PIL import Image, ImageTk
 import cv2
+from tkinter import *
+from PIL import Image, ImageTk
 
-cap = cv2.VideoCapture(0)
 
-def open_cam():
-    ret, frame = cap.read()
-    rgba_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)
-    
-    captured_img = Image.fromarray(rgba_frame)
-    
-    photo_image = ImageTk.PhotoImage(image=captured_img)
-    
-    label_widget.photo_image = photo_image
-    
-    label_widget.configure(image=photo_image)
+cam_on = False
+cap = None
+mainWindow = Tk()
+mainWindow.geometry("800x650")
 
-    label_widget.after(10, open_cam)
-    
 
-def close_cam():
-    close_cam_button = tk.Button(root, text="Close camera",command=default_cam_screen)
-    close_cam_button.pack()
-    if cv2.waitKey(1)==ord("q"):
+# mainFrame = Frame(mainWindow, height = 640, width = 810)
+# mainFrame.place(x=350,y=0)
+# mainFrame.pack()
+
+# cameraFrame = Frame(mainWindow, height = 640, width = 405)
+# cameraFrame.pack()
+   
+
+def show_frame():
+
+    if cam_on:
+
+        ret, frame = cap.read()    
+
+        if ret:
+            cv2image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)    
+            img = Image.fromarray(cv2image).resize((810,640))
+            imgtk = ImageTk.PhotoImage(image=img)        
+            vid_lbl.imgtk = imgtk    
+            vid_lbl.configure(image=imgtk)    
+        
+        vid_lbl.after(10, show_frame)
+
+def start_vid():
+    vid_lbl.pack()
+    global cam_on, cap
+    stop_vid()
+    cam_on = True
+    cap = cv2.VideoCapture(0) 
+    show_frame()
+
+def stop_vid():
+    global cam_on
+    cam_on = False
+    
+    if cap:
         cap.release()
-        label_widget.config(image="./images.chair.jpg")
-    
-def default_cam_screen():
-    cam_screen_widget = tk.Label(root,text="Face Camera", width=500, height=500)
-    cam_screen_widget.place(x=label_widget.winfo_x(),y=label_widget.winfo_y())
+        
+        
+header_label = Label(mainWindow,width=100, height=100, anchor=CENTER)
+header_label.pack()
 
-    
+vid_lbl = Label(mainWindow)
+# vid_lbl.grid(row=0, column=0)
 
-root = tk.Tk()
+#Buttons
+TurnCameraOn = Button(header_label, text="start Video", command=start_vid,anchor=CENTER)
+TurnCameraOn.grid(row=1,column=0, pady=20)
+TurnCameraOff = Button(header_label, text="stop Video", command=stop_vid,anchor=CENTER)
+TurnCameraOff.grid(row=1, column=1, padx=20,pady=20)
 
-label = tk.Label(root,text="FACE-RECOGNITION SYSTEM")
-label.pack()
-
-w = 800 # width for the Tk root
-h = 650 # height for the Tk root
-
-root.geometry(f"{w}x{h}")
-
-cam_button = tk.Button(root, text="Open camera",command=lambda:[open_cam(),close_cam()])
-cam_button.pack()
-
-# cam_frame = tk.Frame(root,width=500, height=500)
-# cam_frame.place(x=100)
-
-
-label_widget = tk.Label(root, width=500, height=500)
-label_widget.pack()
-
-
-
-root.mainloop() # starts the mainloop
-
-    
+mainWindow.mainloop()
