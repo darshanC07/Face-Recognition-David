@@ -62,9 +62,12 @@ frame1 = tk.Frame(root, bg='#576CA8',width=600,height=500)
 frame2 = tk.Canvas(root, bg='#576CA8',width=367,height=500,borderwidth=0, highlightthickness=0)
 
 frame2.create_image((185,250),image = rounded_frame2_bg)
+frame2.create_text((70,40),text="DAVID : HELLO SIR")
 
 canvas_face_cam = tk.Canvas(frame1, width = 600, height = 300,borderwidth=0, highlightthickness=0)
 canvas_face_cam.create_image((300,150), image = camera_screen)
+
+
 canvas_face_cam.pack(anchor="center",pady=100,fill=tk.BOTH)
 
 #buttons 
