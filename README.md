@@ -1,4 +1,3 @@
-#Face Recognition System
 Heyy Coders!!
 This is python github repository for face Recognition.
 The stored_faces folder contains all faces known to program. It will compare the detected face(from image or video) 
