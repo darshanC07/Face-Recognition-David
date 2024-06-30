@@ -5,7 +5,7 @@ import json
 import face_recognition
 import numpy as np
 
-IMAGE_PATH = './assets/face_cam.png'
+IMAGE_PATH = './assets/face_cam.png'app.py
 cam_on = False
 cap = None
 count = 0
