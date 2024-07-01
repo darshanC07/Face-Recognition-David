@@ -137,13 +137,26 @@ frame2 = tk.Canvas(root, bg='#576CA8', width=367, height=500, borderwidth=0, hig
 frame2.create_image((185, 250), image=rounded_frame2_bg)
 
 # Create a text container canvas inside frame2
-text_container = tk.Canvas(frame2, bg='#274690', width=340, height=460, borderwidth=0, highlightthickness=0)
+text_container = tk.Canvas(frame2, bg='#274690', width=340, height=420, borderwidth=0, highlightthickness=0)
 text_container.place(x=20, y=20)
 
 # Add a scrollbar to the text container
 scrollbar = tk.Scrollbar(frame2, orient=tk.VERTICAL, command=text_container.yview)
-scrollbar.place(x=335, y=15, height=470)
+scrollbar.place(x=335, y=15, height=420)
 text_container.config(yscrollcommand=scrollbar.set)
+
+#adding text input feature
+text_input = tk.Entry(frame2,width=50)
+text_input.place(x=20, y=450)
+def submit():
+    text_var = text_input.get()
+    print(text_var)
+ 
+# org_button_img = Image.open("./assets/send.png")
+# resized_img = org_button_img.resize((20,20))
+button_img = tk.PhotoImage(file="./assets/send.png")
+button = tk.Button(frame2,command=submit,width=1,height=1)
+button.place(x=335, y=450)
 
 # Add some initial conversation text
 for i in range(20):
