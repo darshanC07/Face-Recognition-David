@@ -2,14 +2,16 @@ import tkinter as tk
 import cv2
 from PIL import ImageTk, Image
 import json
+import google.generativeai as genai
 import face_recognition
 import numpy as np
+from config import GEMINI_API
 
 IMAGE_PATH = './assets/face_cam.png'
 cam_on = False
 cap = None
 count = 0
-current_y = 10  # Starting y-coordinate for the first text message
+current_y = 170  # Starting y-coordinate for the first text message
 unknown_face_dict = {}
 
 with open("./known_face_encoding.json") as file:
@@ -17,11 +19,43 @@ with open("./known_face_encoding.json") as file:
     if known_faces_encodings is None:
         known_faces_encodings = {}
 
-def text_adder(role, text):
+def ai_model(prompt):
+    genai.configure(api_key=GEMINI_API)
+    
+    generation_config = {
+    "temperature": 0.9,
+    "top_p": 1,
+    "top_k": 0,
+    "max_output_tokens": 2048,
+    "response_mime_type": "text/plain",
+    }
+
+    model = genai.GenerativeModel(
+    model_name="gemini-1.0-pro",
+    generation_config=generation_config,
+    )
+    
+    chat_session = model.start_chat()
+
+    response = chat_session.send_message(prompt)
+    
+    return response.text
+
+
+def text_adder(text=True, role=None):
     global current_y
-    text_container.create_text((10, current_y), text=f"{role} : {text}", fill="white", font=("Merriweather", 10, "bold"), anchor="nw")
+    if role:
+        text_container.create_text((10, current_y),width=300, text=f"{role} : {text}", fill="white", font=("Merriweather", 10, "bold"), anchor="nw")
+    else:
+        text_container.create_text((10, current_y),width=300, text=f"{text}", fill="white", font=("Merriweather", 10, "bold"), anchor="nw")
     current_y += 20  # Move down for the next message
     text_container.config(scrollregion=text_container.bbox("all"))  # Update scroll region
+
+def submit():
+    text_var = text_input.get()
+    text_adder(text_var,role="User")
+    ai_response = ai_model(text_var)
+    text_adder(ai_response,role="David")
 
 def start_face_recognition():
     global count, cap, cam_on
@@ -44,7 +78,7 @@ def start_face_recognition():
                 if matches[best_match]:
                     try:
                         name = list(known_faces_encodings.keys())[best_match]
-                    except:
+                    except Exception as e:
                         name = "unknown"
                 else:
                     name = "unknown"
@@ -137,31 +171,26 @@ frame2 = tk.Canvas(root, bg='#576CA8', width=367, height=500, borderwidth=0, hig
 frame2.create_image((185, 250), image=rounded_frame2_bg)
 
 # Create a text container canvas inside frame2
-text_container = tk.Canvas(frame2, bg='#274690', width=340, height=420, borderwidth=0, highlightthickness=0)
+text_container = tk.Canvas(frame2, bg='#274690', width=300, height=420, borderwidth=0, highlightthickness=0)
 text_container.place(x=20, y=20)
 
 # Add a scrollbar to the text container
 scrollbar = tk.Scrollbar(frame2, orient=tk.VERTICAL, command=text_container.yview)
-scrollbar.place(x=335, y=15, height=420)
+scrollbar.place(x=335, y=20, height=420)
 text_container.config(yscrollcommand=scrollbar.set)
 
 #adding text input feature
 text_input = tk.Entry(frame2,width=50)
 text_input.place(x=20, y=450)
-def submit():
-    text_var = text_input.get()
-    print(text_var)
  
-# org_button_img = Image.open("./assets/send.png")
-# resized_img = org_button_img.resize((20,20))
-button_img = tk.PhotoImage(file="./assets/send.png")
-button = tk.Button(frame2,command=submit,width=1,height=1)
-button.place(x=335, y=450)
+button_img = Image.open("./assets/send.png").resize((20,20))
+resized_button_img = ImageTk.PhotoImage(image=button_img)
+
+button = tk.Button(frame2,command=submit,image=resized_button_img,background="#274690",borderwidth=0)
+button.place(x=332, y=448)
 
 # Add some initial conversation text
-for i in range(20):
-    text_adder("User", "Hello David")
-    text_adder("David", "Hello sir")
+text_container.create_text((10,10),width=300,text="Welcome to DAVID, your personal assistant with a touch of innovation. Powered by face recognition technology, DAVID not only recognizes you but also assists you seamlessly. I can assist you with everything, making your experience intuitive and enjoyable. Let's get started and make your tasks easier together!\n__________________________________________", fill="white", font=("Merriweather", 10, "bold"), anchor="nw")
 
 
 canvas_face_cam = tk.Canvas(frame1, width=600, height=380, borderwidth=0, highlightthickness=0)
@@ -173,7 +202,7 @@ canvas_face_cam.pack(anchor="center", pady=50, fill=tk.BOTH)
 TurnCameraOn = tk.Button(frame1, text="Start Video", command=start_vid, anchor="center")
 TurnCameraOn.place(anchor="center", x=200, y=460)
 TurnCameraOff = tk.Button(frame1, text="Stop Video", command=stop_vid, anchor="center")
-TurnCameraOff.place(anchor="center", x=300, y=460)
+TurnCameraOff.place(anchor="center", x=310, y=460)
 enableFaceRecognition = tk.Button(frame1,text="Enable Face Recognition",command=enable_face_recognition,anchor="center")
 enableFaceRecognition.place(anchor="center", x=450, y=460)
 
