@@ -6,6 +6,7 @@ import google.generativeai as genai
 import face_recognition
 import numpy as np
 from config import GEMINI_API
+import speech_recognition as sr
 
 IMAGE_PATH = './assets/face_cam.png'
 cam_on = False
@@ -13,12 +14,32 @@ cap = None
 count = 0
 current_y = 170  # Starting y-coordinate for the first text message
 unknown_face_dict = {}
+recognizer = sr.Recognizer()
 
 with open("./known_face_encoding.json") as file:
     known_faces_encodings = json.load(file)
     if known_faces_encodings is None:
         known_faces_encodings = {}
 
+
+def voice_command():
+    global recognizer
+    with sr.Microphone() as source:
+        audio_data = recognizer.listen(source)
+    try:
+        text = recognizer.recognize_google(audio_data)
+        if text:
+            text_adder(text,role="User")
+            ai_response = ai_model(text)
+            text_adder(ai_response,role="David")
+            
+    except sr.UnknownValueError:
+        print("Sorry, could not understand audio.")
+        
+    except sr.RequestError as e:
+        print("Error: Could not request results from Google Speech Recognition service")
+          
+          
 def ai_model(prompt):
     genai.configure(api_key=GEMINI_API)
     
@@ -45,17 +66,23 @@ def ai_model(prompt):
 def text_adder(text=True, role=None):
     global current_y
     if role:
-        text_container.create_text((10, current_y),width=300, text=f"{role} : {text}", fill="white", font=("Merriweather", 10, "bold"), anchor="nw")
+        text = text_container.create_text((10, current_y),width=300, text=f"{role} : {text}", fill="white", font=("Merriweather", 10, "bold"), anchor="nw")
     else:
-        text_container.create_text((10, current_y),width=300, text=f"{text}", fill="white", font=("Merriweather", 10, "bold"), anchor="nw")
-    current_y += 20  # Move down for the next message
+        text = text_container.create_text((10, current_y),width=300, text=f"{text}", fill="white", font=("Merriweather", 10, "bold"), anchor="nw")
     text_container.config(scrollregion=text_container.bbox("all"))  # Update scroll region
+    
+    #finding height
+    bounds = text_container.bbox(text)
+    text_height = bounds[3] - bounds[1]
+    current_y += text_height+10  
+
 
 def submit():
     text_var = text_input.get()
     text_adder(text_var,role="User")
     ai_response = ai_model(text_var)
     text_adder(ai_response,role="David")
+
 
 def start_face_recognition():
     global count, cap, cam_on
@@ -76,9 +103,9 @@ def start_face_recognition():
                 best_match = np.argmin(face_distance)
                 
                 if matches[best_match]:
-                    try:
+                    if best_match<len(matches):
                         name = list(known_faces_encodings.keys())[best_match]
-                    except Exception as e:
+                    else :
                         name = "unknown"
                 else:
                     name = "unknown"
@@ -180,9 +207,17 @@ scrollbar.place(x=335, y=20, height=420)
 text_container.config(yscrollcommand=scrollbar.set)
 
 #adding text input feature
-text_input = tk.Entry(frame2,width=50)
+text_input = tk.Entry(frame2,width=45)
 text_input.place(x=20, y=450)
- 
+
+#adding voice command button 
+voice_img = Image.open("./assets/voice_recorder.png").resize((20,20))
+resized_voice_img = ImageTk.PhotoImage(image=voice_img)
+
+button = tk.Button(frame2,command=voice_command,image=resized_voice_img,background="#274690",borderwidth=0)
+button.place(x=305, y=448)
+
+#adding send button
 button_img = Image.open("./assets/send.png").resize((20,20))
 resized_button_img = ImageTk.PhotoImage(image=button_img)
 
