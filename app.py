@@ -7,25 +7,26 @@ import face_recognition
 import numpy as np
 from config import GEMINI_API
 import speech_recognition as sr
+import threading
 
 IMAGE_PATH = './assets/face_cam.png'
 USER_INPUT = None
 AI_RESPONSE = None
 cam_on = False
 cap = None
-count = 0
+count = 1
 current_y = 170  # Starting y-coordinate for the first text message
 unknown_face_dict = {}
 conversation = []
 recognizer = sr.Recognizer()
+
+
 with open("./known_face_encoding.json") as file:
     known_faces_encodings = json.load(file)
     if known_faces_encodings is None:
         known_faces_encodings = {}
 
-
-          
-          
+      
 def ai_model(prompt):
     global GEMINI_API
     genai.configure(api_key=GEMINI_API)
@@ -50,8 +51,31 @@ def ai_model(prompt):
     response = chat_session.send_message(prompt)
     
     return response.text
-
-
+    
+def new_face_show():
+    global text_container, current_y, unknown_face_dict
+    
+    # print(len(unknown_face_dict.items()))
+    canvas = tk.Canvas(text_container,height=250,bg="pink")
+    text_container.create_window((150,current_y+130),window=canvas,width=300)
+    h_scrollbar = tk.Scrollbar(canvas, orient='horizontal', command=canvas.xview)
+    h_scrollbar.place(x=0,y=233, width=300)
+    
+    canvas.config(xscrollcommand=h_scrollbar.set)
+    x = 2
+    for i in range(len(unknown_face_dict.items())):
+        bgr_image_array = list(unknown_face_dict.values())[i]
+        rgb_image_array = cv2.cvtColor(bgr_image_array,cv2.COLOR_BGR2RGB)
+        org_img = Image.fromarray(rgb_image_array).resize((200,200))
+        img = ImageTk.PhotoImage(image=org_img)
+        canvas.imgtk = img
+        canvas.create_image((x, 5), image = img)
+        
+        x+=(org_img.width+5)
+        canvas.config(scrollregion=canvas.bbox("all"))
+    
+    current_y+=270
+        
 def voice_command():
     global recognizer
     with sr.Microphone() as source:
@@ -70,7 +94,9 @@ def voice_command():
     except sr.RequestError as e:
         print("Error: Could not request results from Google Speech Recognition service")
         
-        
+def voice_command_thread():
+    threading.Thread(target=voice_command).start()        
+
 def text_adder(text=True, role=None):
     global current_y
     if role:
@@ -91,6 +117,8 @@ def submit():
     ai_response = ai_model(text_var)
     text_adder(ai_response,role="David")
 
+def submit_thread():
+    threading.Thread(target=submit).start()
 
 def start_face_recognition():
     global count, cap, cam_on
@@ -102,18 +130,19 @@ def start_face_recognition():
             face_locations = face_recognition.face_locations(rgb_frame)
             face_encodings = face_recognition.face_encodings(rgb_frame, face_locations)
             
-            for i, face_encoding in enumerate(face_encodings):
-                y1, x2, y2, x1 = face_locations[i]
-            
+            for face_location, face_encoding in zip(face_locations,face_encodings):
+                y1, x2, y2, x1 = face_location
+                
                 matches = face_recognition.compare_faces(list(known_faces_encodings.values()), face_encoding)
                 face_distance = face_recognition.face_distance(list(known_faces_encodings.values()), face_encoding)
                 
                 best_match = np.argmin(face_distance)
-                
-                if matches[best_match]:
-                    if best_match<len(matches):
-                        name = list(known_faces_encodings.keys())[best_match]
-                    else :
+                    
+                if(matches[best_match]):
+                    try:
+                        org_name = list(known_faces_encodings.keys())[best_match]
+                        name = org_name.split(".")[0]
+                    except:
                         name = "unknown"
                 else:
                     name = "unknown"
@@ -121,10 +150,11 @@ def start_face_recognition():
                     face_name = f"unknown{count}"
                     unknown_face_dict[face_name] = face_img
                     count += 1
-                    
+                        
                 cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 255, 255), 3)
                 cv2.putText(frame, name, (x1 + 10, y1 - 10), cv2.FONT_HERSHEY_PLAIN, 1, (255, 255, 255), 1)
 
+                    
             cv2image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             img = Image.fromarray(cv2image).resize((822, 652))
             imgtk = ImageTk.PhotoImage(image=img)
@@ -132,6 +162,7 @@ def start_face_recognition():
             canvas_face_cam.create_image((302, 150), image=imgtk)
         
         canvas_face_cam.after(5, start_face_recognition)
+
 
 def show_frame():
     if cam_on:
@@ -154,6 +185,10 @@ def start_vid():
         print("Error: Could not open video capture")
         return
     show_frame()
+
+
+def start_vid_thread():
+    threading.Thread(target=start_vid).start()
 
 def stop_vid():
     global cam_on
@@ -178,8 +213,10 @@ def enable_face_recognition():
     cap = cv2.VideoCapture(0)
     start_face_recognition()
         
-    
-    
+        
+def face_recog_thread():
+    threading.Thread(target=enable_face_recognition).start()    
+
 
 # Create the main window
 root = tk.Tk()
@@ -222,19 +259,18 @@ text_input.place(x=20, y=450)
 voice_img = Image.open("./assets/microphone.png").resize((20,20))
 resized_microphone_img = ImageTk.PhotoImage(image=voice_img)
 
-button = tk.Button(frame2,command=voice_command,image=resized_microphone_img,background="#274690",borderwidth=0)
+button = tk.Button(frame2,command=voice_command_thread,image=resized_microphone_img,background="#274690",borderwidth=0)
 button.place(x=305, y=448)
 
 #adding send button
 button_img = Image.open("./assets/send.png").resize((20,20))
 resized_button_img = ImageTk.PhotoImage(image=button_img)
 
-button = tk.Button(frame2,command=submit,image=resized_button_img,background="#274690",borderwidth=0)
+button = tk.Button(frame2,command=submit_thread,image=resized_button_img,background="#274690",borderwidth=0)
 button.place(x=332, y=448)
 
 # Add some initial conversation text
 text_container.create_text((10,10),width=300,text="Welcome to DAVID, your personal assistant with a touch of innovation. Powered by face recognition technology, DAVID not only recognizes you but also assists you seamlessly. I can assist you with everything, making your experience intuitive and enjoyable. Let's get started and make your tasks easier together!\n__________________________________________", fill="white", font=("Merriweather", 10, "bold"), anchor="nw")
-
 
 canvas_face_cam = tk.Canvas(frame1, width=600, height=380, borderwidth=0, highlightthickness=0)
 canvas_face_cam.create_image((300, 190), image=camera_screen)
@@ -242,97 +278,17 @@ canvas_face_cam.create_image((300, 190), image=camera_screen)
 canvas_face_cam.pack(anchor="center", pady=50, fill=tk.BOTH)
 
 # Buttons
-TurnCameraOn = tk.Button(frame1, text="Start Video", command=start_vid, anchor="center")
+TurnCameraOn = tk.Button(frame1, text="Start Video", command=start_vid_thread, anchor="center")
 TurnCameraOn.place(anchor="center", x=200, y=460)
 TurnCameraOff = tk.Button(frame1, text="Stop Video", command=stop_vid, anchor="center")
 TurnCameraOff.place(anchor="center", x=310, y=460)
-enableFaceRecognition = tk.Button(frame1,text="Enable Face Recognition",command=enable_face_recognition,anchor="center")
+enableFaceRecognition = tk.Button(frame1,text="Enable Face Recognition",command=face_recog_thread,anchor="center")
 enableFaceRecognition.place(anchor="center", x=450, y=460)
+newFace = tk.Button(frame1,text="Show new face",command=new_face_show,anchor="center")
+newFace.place(anchor="center", x=450, y=490)
 
 frame1.grid(row=1, column=0, sticky="nsew", padx=(8, 8))
 frame2.grid(row=1, column=1, sticky="nsew", padx=(8, 8))
 
-while True:
-        print("listening..")
-        try: 
-            command = takeCommand().lower()
-            print(f"User : {command}")
-
-            if "quit" in command :
-                print("OK Thank You Sir , Have a nice day")
-                say("Ok Thank You Sir , Hve a nice day")
-                exit()
-                
-            if command=="david":
-                continue
-            
-            category = classifier(command)
-            
-            if "command".lower() in category:
-                print("Working on it Sir.")
-                say("Working on it Sir.")
-                
-                new_category = new_classifier(command)
-                # print(new_category)
-                
-                if "clear conversation history".lower() in command:
-                    conversation = []  
-                    
-                elif "conversation history".lower() in command :
-                    # print("here")
-                    print(conversation)
-                                
-                elif "other".lower() in new_category:
-                    # print("here")
-                    new_prompt = f"just return the code which will fulfill the command , just return the code of following command and nothing else , mostly use os module for it,but if not suitable then you can also use webbrowser module to open sites and consider that os module is already imported: {command} consider that the device is of Windows OS"
-                    code_response = gemini_ai(new_prompt)
-                    final_code = cleaner(code_response)
-                    conversation_appender(command,final_code)
-                    # print(final_code)
-                    exec(final_code)
-                    
-                else:
-                    # print("in command")
-                    chat_response = chat(command)
-                    conversation_appender(command,chat_response)
-                    print(f"Role : David\nContent : {chat_response}")
-                    say(chat_response)
-                   
-            elif "question".lower() in category:
-                
-                if "time" in command :
-                    hour = int(datetime.datetime.now().strftime("%H"))
-                    if hour>12:
-                        hour = hour - 12
-                    mins = int(datetime.datetime.now().strftime("%H"))
-                    print(f"Current time is {hour} hours {mins} minutes")
-                    say(f"Current time is {hour} hours {mins} minutes")
-                    
-                else:
-                    # print("in question")
-                    chat_response = chat(command)
-                    conversation_appender(command,chat_response)
-                    print(f"Role : David\nContent : {chat_response}")
-                    say(chat_response)
-                        
-                  
-            elif "artificial".lower() in command :
-                prompt = command.split("intelligence",1)[1]
-                response = gemini_ai(prompt)
-                conversation_appender(command,chat_response)
-                print(response)
-              
-            else:
-                # print("in else")
-                chat_response = chat(command)
-                conversation_appender(command,chat_response)
-                print(f"Role : David\nContent : {chat_response}")
-                say(chat_response)
-                
-                
-        except Exception as e:
-            # print(e)
-            pass
-        
 # Run the main loop
 root.mainloop()
