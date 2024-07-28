@@ -54,27 +54,33 @@ def ai_model(prompt):
     
 def new_face_show():
     global text_container, current_y, unknown_face_dict
-    
-    # print(len(unknown_face_dict.items()))
-    canvas = tk.Canvas(text_container,height=250,bg="pink")
+
+    canvas = tk.Canvas(text_container,height=250,bg="pink",width=300)
     text_container.create_window((150,current_y+130),window=canvas,width=300)
+    
     h_scrollbar = tk.Scrollbar(canvas, orient='horizontal', command=canvas.xview)
     h_scrollbar.place(x=0,y=233, width=300)
     
     canvas.config(xscrollcommand=h_scrollbar.set)
-    x = 2
-    for i in range(len(unknown_face_dict.items())):
-        bgr_image_array = list(unknown_face_dict.values())[i]
-        rgb_image_array = cv2.cvtColor(bgr_image_array,cv2.COLOR_BGR2RGB)
+    
+    canvas.image_list = []
+    x = 0
+    print(len(unknown_face_dict.items()))
+    for name,image in unknown_face_dict.items():
+        rgb_image_array = cv2.cvtColor(image,cv2.COLOR_BGR2RGB)
         org_img = Image.fromarray(rgb_image_array).resize((200,200))
         img = ImageTk.PhotoImage(image=org_img)
         canvas.imgtk = img
-        canvas.create_image((x, 5), image = img)
+        canvas.create_image(x,5, image = img, anchor="nw") #adding image
+        canvas.image_list.append(img) #appending to image_list so that it is not discarded
         
-        x+=(org_img.width+5)
-        canvas.config(scrollregion=canvas.bbox("all"))
+        canvas.create_rectangle(x+5,210,x+70,230, fill="blue", outline="black") #adding save button
+
+        x +=205
     
-    current_y+=270
+    canvas.config(scrollregion=canvas.bbox("all"))
+    canvas.update_idletasks() 
+    current_y +=270
         
 def voice_command():
     global recognizer
@@ -146,6 +152,8 @@ def start_face_recognition():
                         name = "unknown"
                 else:
                     name = "unknown"
+                
+                if name=="unknown":
                     face_img = frame[y1:y2, x1:x2]
                     face_name = f"unknown{count}"
                     unknown_face_dict[face_name] = face_img
@@ -292,3 +300,56 @@ frame2.grid(row=1, column=1, sticky="nsew", padx=(8, 8))
 
 # Run the main loop
 root.mainloop()
+
+# works after everything
+def load_new_face_encoding():
+    global new_faces_list, json_file, known_faces_dict
+    for image in new_faces_list:
+        name = image
+        img = cv2.imread(f"./known_faces/{image}")
+        rgb_img = cv2.cvtColor(img,cv2.COLOR_BGR2RGB)
+        # img = face_recognition.load_image_file(f"./known_faces/{image}")
+        face_location = face_recognition.face_locations(rgb_img)
+        # print(face_location)
+        img_encoding = numpy.array(face_recognition.face_encodings(rgb_img,face_location)[0])
+        known_faces_dict[name] = img_encoding.tolist()
+        
+def load_known_face_encoding_dict():
+    for image in (os.listdir("./known_faces/")):
+        name = image
+        img = cv2.imread(f"./known_faces/{image}")
+        rgb_img = cv2.cvtColor(img,cv2.COLOR_BGR2RGB)
+        # img = face_recognition.load_image_file(f"./known_faces/{image}")
+        face_location = face_recognition.face_locations(rgb_img)
+        img_encoding = numpy.array(face_recognition.face_encodings(rgb_img,face_location)[0])
+        known_faces_dict[name] = img_encoding.tolist()
+    # return known_faces_dict
+
+def known_faces_json_creater():       
+    global json_file, known_faces_dict
+    json_file.seek(0)
+    json.dump(known_faces_dict,json_file)
+        
+load_known_face_encoding_dict()
+       
+json_file = open("./known_face_encoding.json","r+")
+json_data = json.load(json_file)
+
+# json_dict = json.loads(json_data)
+old_known_names_list = list(json_data.keys())
+old_known_names_list = map(lambda img: img+".png", old_known_names_list )
+
+
+known_faces_data = os.listdir("./known_faces/")
+# new_known_names_list = list(map(lambda i: i.split(".")[0], known_faces_data))
+
+diff = list(set(known_faces_data)-set(old_known_names_list))
+new_faces_list = []
+for new_face in diff:
+    for face in known_faces_data:
+        if new_face not in face:
+            new_faces_list.append(face)
+
+
+load_new_face_encoding() 
+known_faces_json_creater() 
