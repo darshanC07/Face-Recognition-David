@@ -8,7 +8,6 @@ import numpy as np
 from config import GEMINI_API
 import speech_recognition as sr
 import threading
-import time
 
 IMAGE_PATH = './assets/face_cam.png'
 USER_INPUT = None
@@ -48,50 +47,14 @@ def ai_model(prompt):
     
     
     chat_session = model.start_chat()
-    try:
-        response = chat_session.send_message(prompt)
-        return response.text
-    except:
-        return "Sorry... some error occurred."
 
-
+    response = chat_session.send_message(prompt)
     
-
+    return response.text
+    
 def new_face_show():
     global text_container, current_y, unknown_face_dict
-    
-    #declaring inner funct to work when save_button is clicked()
-    def save_button_clicked(image_arr):
-        '''event is used so that all save_button are binded properly with their particular image_name but in save_button_clicked funct, only when event occurs (here, left button clicking), then only the image name is clicked'''
-        # print(img_name)
-        
-        def save_face():
-            face_name = face_name_entry.get()
-            if face_name:
-                full_file_name = face_name+".png"
-                cv2.imwrite(f"./known_faces/{full_file_name}",image_arr)
-                msg = tk.Label(save_window,text="File saved successfully",fg="black", font=("Helvetica", 10, "bold"))
-                msg.place(relx=0.5,y=150, anchor="center")
-                save_window.update()
-                time.sleep(2)
-                save_window.destroy()
-            
-        save_window = tk.Tk()
-        save_window.title("Save Face")
-        save_window.geometry("300x170")
-        save_window.resizable(False,False)
-        
-        label_save = tk.Label(save_window,text="Enter the Face name", fg="black", font=("Helvetica", 16, "bold"))
-        label_save.place(relx=0.5,y=25, anchor="center")
-                
-        face_name_entry = tk.Entry(save_window, width=40,borderwidth=2,background="#D3D3D3",font=("Helvetica", 10, "bold"))
-        face_name_entry.place(relx=0.5,y=63, anchor="center")
-                
-        submit_name = tk.Button(save_window, text="Save",width=15, height=2, background="#D3D3D3", font=("Helvetica", 10, "bold"),command=save_face)
-        submit_name.place(relx=0.5,y=110, anchor="center")
 
-        save_window.mainloop()
-            
     canvas = tk.Canvas(text_container,height=250,bg="pink",width=300)
     text_container.create_window((150,current_y+130),window=canvas,width=300)
     
@@ -101,10 +64,9 @@ def new_face_show():
     canvas.config(xscrollcommand=h_scrollbar.set)
     
     canvas.image_list = []
-    
     x = 0
     print(len(unknown_face_dict.items()))
-    for name, image in unknown_face_dict.items():
+    for name,image in unknown_face_dict.items():
         rgb_image_array = cv2.cvtColor(image,cv2.COLOR_BGR2RGB)
         org_img = Image.fromarray(rgb_image_array).resize((200,200))
         img = ImageTk.PhotoImage(image=org_img)
@@ -112,12 +74,12 @@ def new_face_show():
         canvas.create_image(x,5, image = img, anchor="nw") #adding image
         canvas.image_list.append(img) #appending to image_list so that it is not discarded
         
-        save_button = canvas.create_rectangle(x+5,210,x+70,230, fill="blue", outline="black") #adding rectangle as save button
-        canvas.tag_bind(save_button,"<Button-1>", lambda event, image_matrix=image: save_button_clicked(image_matrix))
+        canvas.create_rectangle(x+5,210,x+70,230, fill="blue", outline="black") #adding save button
+
         x +=205
     
     canvas.config(scrollregion=canvas.bbox("all"))
-    canvas.update_idletasks() #just to update canvas
+    canvas.update_idletasks() 
     current_y +=270
         
 def voice_command():
@@ -133,8 +95,7 @@ def voice_command():
             conversation.append({"user": text, "david": ai_response})
             
     except sr.UnknownValueError:
-        text_adder(text="Sorry, could not understand audio.")
-        # print("Sorry, could not understand audio.")
+        print("Sorry, could not understand audio.")
         
     except sr.RequestError as e:
         print("Error: Could not request results from Google Speech Recognition service")
@@ -339,3 +300,56 @@ frame2.grid(row=1, column=1, sticky="nsew", padx=(8, 8))
 
 # Run the main loop
 root.mainloop()
+
+# works after everything
+def load_new_face_encoding():
+    global new_faces_list, json_file, known_faces_dict
+    for image in new_faces_list:
+        name = image
+        img = cv2.imread(f"./known_faces/{image}")
+        rgb_img = cv2.cvtColor(img,cv2.COLOR_BGR2RGB)
+        # img = face_recognition.load_image_file(f"./known_faces/{image}")
+        face_location = face_recognition.face_locations(rgb_img)
+        # print(face_location)
+        img_encoding = numpy.array(face_recognition.face_encodings(rgb_img,face_location)[0])
+        known_faces_dict[name] = img_encoding.tolist()
+        
+def load_known_face_encoding_dict():
+    for image in (os.listdir("./known_faces/")):
+        name = image
+        img = cv2.imread(f"./known_faces/{image}")
+        rgb_img = cv2.cvtColor(img,cv2.COLOR_BGR2RGB)
+        # img = face_recognition.load_image_file(f"./known_faces/{image}")
+        face_location = face_recognition.face_locations(rgb_img)
+        img_encoding = numpy.array(face_recognition.face_encodings(rgb_img,face_location)[0])
+        known_faces_dict[name] = img_encoding.tolist()
+    # return known_faces_dict
+
+def known_faces_json_creater():       
+    global json_file, known_faces_dict
+    json_file.seek(0)
+    json.dump(known_faces_dict,json_file)
+        
+load_known_face_encoding_dict()
+       
+json_file = open("./known_face_encoding.json","r+")
+json_data = json.load(json_file)
+
+# json_dict = json.loads(json_data)
+old_known_names_list = list(json_data.keys())
+old_known_names_list = map(lambda img: img+".png", old_known_names_list )
+
+
+known_faces_data = os.listdir("./known_faces/")
+# new_known_names_list = list(map(lambda i: i.split(".")[0], known_faces_data))
+
+diff = list(set(known_faces_data)-set(old_known_names_list))
+new_faces_list = []
+for new_face in diff:
+    for face in known_faces_data:
+        if new_face not in face:
+            new_faces_list.append(face)
+
+
+load_new_face_encoding() 
+known_faces_json_creater() 
