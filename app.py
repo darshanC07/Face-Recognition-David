@@ -96,7 +96,7 @@ def new_face_show():
     text_container.create_window((150,current_y+130),window=canvas,width=300)
     
     h_scrollbar = tk.Scrollbar(canvas, orient='horizontal', command=canvas.xview)
-    h_scrollbar.place(x=0,y=233, width=300)
+    h_scrollbar.place(x=0,y=234, width=300)
     
     canvas.config(xscrollcommand=h_scrollbar.set)
     
@@ -114,6 +114,8 @@ def new_face_show():
         
         save_button = canvas.create_rectangle(x+5,210,x+70,230, fill="blue", outline="black") #adding rectangle as save button
         canvas.tag_bind(save_button,"<Button-1>", lambda event, image_matrix=image: save_button_clicked(image_matrix))
+        save_text = canvas.create_text(x+37,220,text="Save",fill="white", font=('Helvetica 12 bold'))
+        canvas.tag_bind(save_text,"<Button-1>", lambda event, image_matrix=image: save_button_clicked(image_matrix))
         x +=205
     
     canvas.config(scrollregion=canvas.bbox("all"))
@@ -297,6 +299,12 @@ text_container.place(x=20, y=20)
 scrollbar = tk.Scrollbar(frame2, orient=tk.VERTICAL, command=text_container.yview)
 scrollbar.place(x=335, y=20, height=420)
 text_container.config(yscrollcommand=scrollbar.set)
+
+#adding mouse-wheel scrolling to text-container
+def on_mousewheel(canvas,event):
+    canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+    
+text_container.bind_all("<MouseWheel>",lambda event,canvas = text_container:on_mousewheel(canvas,event))
 
 #adding text input feature
 text_input = tk.Entry(frame2,width=45)
