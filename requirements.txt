@@ -1,0 +1,10 @@
+tk
+opencv-python
+pillow
+simplejson
+google.generativeai  
+face_recognition
+numpy 
+SpeechRecognition  
+thread
+face-recognition
