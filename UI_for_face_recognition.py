@@ -43,7 +43,7 @@ def stop_vid():
     # Display the custom image if available
     if camera_screen:
         canvas_face_cam.imgtk = camera_screen
-        canvas_face_cam.create_image((302, 150), image=camera_screen)
+        canvas_face_cam.create_image((302, 190), image=camera_screen)
     else:
         print("Custom image not found")
 
@@ -52,6 +52,7 @@ root = tk.Tk()
 root.title("Main Window")
 root.geometry("1000x600")
 root.config(background="#576CA8")
+root.resizable(False,False)
 root.grid_columnconfigure(0, minsize=600)
 root.grid_columnconfigure(1, minsize=367)
 root.grid_rowconfigure(0)
@@ -85,16 +86,16 @@ for i in range(20):
     text_adder("David", "Hello sir")
 
 
-canvas_face_cam = tk.Canvas(frame1, width=600, height=300, borderwidth=0, highlightthickness=0)
-canvas_face_cam.create_image((300, 150), image=camera_screen)
+canvas_face_cam = tk.Canvas(frame1, width=600, height=380, borderwidth=0, highlightthickness=0)
+canvas_face_cam.create_image((300, 190), image=camera_screen)
 
-canvas_face_cam.pack(anchor="center", pady=100, fill=tk.BOTH)
+canvas_face_cam.pack(anchor="center", pady=50, fill=tk.BOTH)
 
 # Buttons
 TurnCameraOn = tk.Button(frame1, text="Start Video", command=start_vid, anchor="center")
-TurnCameraOn.place(anchor="center", x=250, y=425)
+TurnCameraOn.place(anchor="center", x=250, y=460)
 TurnCameraOff = tk.Button(frame1, text="Stop Video", command=stop_vid, anchor="center")
-TurnCameraOff.place(anchor="center", x=350, y=425)
+TurnCameraOff.place(anchor="center", x=350, y=460)
 
 frame1.grid(row=1, column=0, sticky="nsew", padx=(8, 8))
 frame2.grid(row=1, column=1, sticky="nsew", padx=(8, 8))
