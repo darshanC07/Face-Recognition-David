@@ -32,6 +32,15 @@ pip install -r requirements.txt
 ```bash
 python app.py
 ```
+
+## Contributing
+
+Contributions are always welcome!
+
+See `contributing.md` for ways to get started.
+
+Please adhere to this project's `code of conduct`.
+
 ## Feedback
 If you have any querries/issues, please reach out to me at darshanchoudhary2007@gmail.com.
 Also please provide your valuable feedback.
