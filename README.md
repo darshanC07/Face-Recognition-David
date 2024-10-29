@@ -1,4 +1,3 @@
-
 # DAVID - Face Recognition system
 
 Heyyy coders!!
@@ -13,3 +12,26 @@ The latest feature I've added to David is a face recognition system with GUI. No
 3. Uses Faces from the known_faces folder as db.
 4. Provided a feature to save unknown faces, for future recognition.
 
+## Installation
+
+1. Clone this repository
+
+```bash
+  git clone https://github.com/darshanC07/DAVID-face_reg_sys.git
+```
+2. Nagivate to the folder
+```bash
+cd .\DAVID-face_reg_sys\
+```
+3. Install required modules
+```bash
+pip install -r requirements.txt
+```
+4. Visit [Google AI Studio](https://ai.google.dev/aistudio), and get your free api key. Add that api key in config.py file.
+5. Run the app.py
+```bash
+python app.py
+```
+## Feedback
+If you have any querries/issues, please reach out to me at darshanchoudhary2007@gmail.com.
+Also please provide your valuable feedback.
