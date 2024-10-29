@@ -10,7 +10,7 @@ import speech_recognition as sr
 import threading
 import time
 
-IMAGE_PATH = './assets/face_cam.png'
+IMAGE_PATH = './Assets/face_cam.png'
 USER_INPUT = None
 AI_RESPONSE = None
 cam_on = False
@@ -279,7 +279,7 @@ root.grid_rowconfigure(0)
 root.grid_rowconfigure(1, weight=1)
 
 camera_screen = tk.PhotoImage(file=IMAGE_PATH).subsample(1)
-rounded_frame2_bg = tk.PhotoImage(file="./assets/frame2bg.png")
+rounded_frame2_bg = tk.PhotoImage(file="./Assets/frame2bg.png")
 
 header = tk.Label(root, text="Face-Recognition System", bg="#576CA8", fg="white", font=("Helvetica", 16, "bold"))
 header.grid(row=0, columnspan=2, pady=10)
@@ -311,14 +311,14 @@ text_input = tk.Entry(frame2,width=45)
 text_input.place(x=20, y=450)
 
 #adding voice command button 
-voice_img = Image.open("./assets/microphone.png").resize((20,20))
+voice_img = Image.open("./Assets/microphone.png").resize((20,20))
 resized_microphone_img = ImageTk.PhotoImage(image=voice_img)
 
 button = tk.Button(frame2,command=voice_command_thread,image=resized_microphone_img,background="#274690",borderwidth=0)
 button.place(x=305, y=448)
 
 #adding send button
-button_img = Image.open("./assets/send.png").resize((20,20))
+button_img = Image.open("./Assets/send.png").resize((20,20))
 resized_button_img = ImageTk.PhotoImage(image=button_img)
 
 button = tk.Button(frame2,command=submit_thread,image=resized_button_img,background="#274690",borderwidth=0)
