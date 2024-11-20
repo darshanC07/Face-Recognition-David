@@ -20,7 +20,6 @@ current_y = 170  # Starting y-coordinate for the first text message
 unknown_face_dict = {}
 conversation = []
 recognizer = sr.Recognizer()
-unknown_face_dict = {}
 known_encoding = []
 known_names = []
 
@@ -186,7 +185,10 @@ def start_face_recognition():
             
             for face_location, face_encoding in zip(face_locations,face_encodings):
                 y1, x2, y2, x1 = face_location
-                
+                x1-=13
+                y1-=50
+                x2+=13
+                y2+=30
                 matches = face_recognition.compare_faces(known_encoding, face_encoding)
                 # face_distance = face_recognition.face_distance(list(known_faces_encodings.values()), face_encoding)
                 
