@@ -20,10 +20,17 @@ current_y = 170  # Starting y-coordinate for the first text message
 unknown_face_dict = {}
 conversation = []
 recognizer = sr.Recognizer()
+unknown_face_dict = {}
+known_encoding = []
+known_names = []
 
+def convert(data):
+    return data[0]
 
 with open("./known_face_encoding.json") as file:
     known_faces_encodings = json.load(file)
+    known_encoding = list(map(convert,known_faces_encodings.values()))
+    known_names = known_faces_encodings.keys()
     if known_faces_encodings is None:
         known_faces_encodings = {}
 
@@ -180,12 +187,13 @@ def start_face_recognition():
             for face_location, face_encoding in zip(face_locations,face_encodings):
                 y1, x2, y2, x1 = face_location
                 
-                matches = face_recognition.compare_faces(list(known_faces_encodings.values()), face_encoding)
-                face_distance = face_recognition.face_distance(list(known_faces_encodings.values()), face_encoding)
+                matches = face_recognition.compare_faces(known_encoding, face_encoding)
+                # face_distance = face_recognition.face_distance(list(known_faces_encodings.values()), face_encoding)
                 
-                best_match = np.argmin(face_distance)
-                    
-                if(matches[best_match]):
+                # best_match = np.argmin(face_distance)
+                if True in matches:
+                    best_match = matches.index(True)
+                # if(matches[best_match]):
                     try:
                         org_name = list(known_faces_encodings.keys())[best_match]
                         name = org_name.split(".")[0]
