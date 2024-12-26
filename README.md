@@ -2,9 +2,13 @@
 
 Heyyy coders!!
 
-You already met with DAVID, a self-built virtual assistant. David is a friendly and helpful voice-commanded Virtual Assistant who can assist you with a wide range of tasks. From opening websites, searching for information, engaging in enjoyable conversations, and creating files, David is there to make your life easier. He can also access and open files on your device, make changes as needed, and much more. With David, you'll have a reliable companion for all your digital needs. You can check it out here.
+You already met with DAVID, a self-built virtual assistant. David is a friendly and helpful voice-commanded Virtual Assistant who can assist you with a wide range of tasks. From opening websites, searching for information, engaging in enjoyable conversations, and creating files, David is there to make your life easier. He can also access and open files on your device, make changes as needed, and much more. With David, you'll have a reliable companion for all your digital needs. <br>
+You can check it out here.<br>
+Previous Github Repository : https://github.com/darshanC07/David-Virtual-Assistant
 
 The latest feature I've added to David is a face recognition system with GUI. Now David can not only just hear your commands and work accordingly but also he can now detect and recognize faces that also in realtime.
+
+https://github.com/user-attachments/assets/36c8bae7-1b0d-4672-bdf5-27b4d14ab15e
 
 ## Key Points
 1. Built GUI for David.
